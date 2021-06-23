@@ -250,7 +250,7 @@ func (s *Server) doBindObjectClassMethod(
 	middleware []HandlerFunc, source string,
 ) {
 	var (
-		// m = make(map[string]*handlerItem)
+		m = make(map[string]*handlerItem)
 		v = reflect.ValueOf(object)
 		t = v.Type()
 		// initFunc func(*Request)
@@ -292,19 +292,19 @@ func (s *Server) doBindObjectClassMethod(
 		return
 	}
 	key := mergeBuildInNameToPattern(s.Server, pattern, structName, methodName, false)
-	s.BindHandler(key, s.callObjectClassMethods(object, methodName))
-	// m[key] = &handlerItem{
-	// 	itemName: fmt.Sprintf(`%s.%s.%s`, pkgPath, objName, methodName),
-	// 	itemType: handlerTypeHandler,
-	// 	itemFunc: s.callObjectClassMethods(object, methodName),
-	// 	// itemType:   handlerTypeObject,
-	// 	// itemFunc:   itemFunc,
-	// 	// initFunc:   initFunc,
-	// 	// shutFunc:   shutFunc,
-	// 	middleware: middleware,
-	// 	source:     source,
-	// }
-
+	// s.BindHandler(key, s.callObjectClassMethods(object, methodName))
+	m[key] = &handlerItem{
+		itemName: fmt.Sprintf(`%s.%s.%s`, pkgPath, objName, methodName),
+		itemType: handlerTypeHandler,
+		itemFunc: s.callObjectClassMethods(object, methodName),
+		// itemType:   handlerTypeObject,
+		// itemFunc:   itemFunc,
+		// initFunc:   initFunc,
+		// shutFunc:   shutFunc,
+		middleware: middleware,
+		source:     source,
+	}
+	bindHandlerByMap(s.Server, m)
 	// s.bindHandlerByMap(m)
 }
 
@@ -313,7 +313,7 @@ func (s *Server) doBindObjectClassRest(
 	middleware []HandlerFunc, source string,
 ) {
 	var (
-		// m = make(map[string]*handlerItem)
+		m = make(map[string]*handlerItem)
 		v = reflect.ValueOf(object)
 		t = v.Type()
 		// initFunc func(*Request)
@@ -354,19 +354,20 @@ func (s *Server) doBindObjectClassRest(
 			continue
 		}
 		key := mergeBuildInNameToPattern(s.Server, methodName+":"+pattern, structName, methodName, false)
-		// m[key] = &handlerItem{
-		// 	itemName: fmt.Sprintf(`%s.%s.%s`, pkgPath, objName, methodName),
-		// 	itemType: handlerTypeHandler,
-		// 	itemFunc: s.callObjectClassMethods(object, methodName),
+		m[key] = &handlerItem{
+			itemName: fmt.Sprintf(`%s.%s.%s`, pkgPath, objName, methodName),
+			itemType: handlerTypeHandler,
+			itemFunc: s.callObjectClassMethods(object, methodName),
 
-		// 	// itemType:   handlerTypeObject,
-		// 	// itemFunc:   itemFunc,
-		// 	// initFunc:   initFunc,
-		// 	// shutFunc:   shutFunc,
-		// 	middleware: middleware,
-		// 	source:     source,
-		// }
-		s.BindHandler(key, s.callObjectClassMethods(object, methodName))
+			// itemType:   handlerTypeObject,
+			// itemFunc:   itemFunc,
+			// initFunc:   initFunc,
+			// shutFunc:   shutFunc,
+			middleware: middleware,
+			source:     source,
+		}
+		// s.BindHandler(key, s.callObjectClassMethods(object, methodName))
 	}
 	// s.bindHandlerByMap(m)
+	bindHandlerByMap(s.Server, m)
 }
