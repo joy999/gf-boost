@@ -12,41 +12,6 @@ import (
 	"github.com/gogf/gf/net/ghttp"
 )
 
-// BuildParams builds the request string for the http client. The <params> can be type of:
-// string/[]byte/map/struct/*struct.
-//
-// The optional parameter <noUrlEncode> specifies whether ignore the url encoding for the data.
-// func BuildParams(params interface{}, noUrlEncode ...bool) (encodedParamStr string) {
-// 	return httputil.BuildParams(params, noUrlEncode...)
-// }
-
-// niceCallFunc calls function <f> with exception capture logic.
-// func niceCallFunc(f func()) {
-// 	defer func() {
-// 		if exception := recover(); exception != nil {
-// 			switch exception {
-// 			case exceptionExit, exceptionExitAll:
-// 				return
-// 			default:
-// 				if _, ok := exception.(errorStack); ok {
-// 					// It's already an error that has stack info.
-// 					panic(exception)
-// 				} else {
-// 					// Create a new error with stack info.
-// 					// Note that there's a skip pointing the start stacktrace
-// 					// of the real error point.
-// 					if err, ok := exception.(error); ok {
-// 						panic(gerror.Wrap(err, ""))
-// 					} else {
-// 						panic(gerror.NewSkipf(1, "%v", exception))
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}()
-// 	f()
-// }
-
 //go:linkname niceCallFunc github.com/gogf/gf/net/ghttp.niceCallFunc
 func niceCallFunc(func())
 
@@ -58,3 +23,6 @@ func parsePattern(*ghttp.Server, string) (domain, method, path string, err error
 
 //go:linkname serveHandlerKey github.com/gogf/gf/net/ghttp.(*Server).serveHandlerKey
 func serveHandlerKey(*ghttp.Server, string, string, string) string
+
+//go:linkname bindHandlerByMap github.com/gogf/gf/net/ghttp.(*Server).bindHandlerByMap
+func bindHandlerByMap(*ghttp.Server, map[string]*handlerItem)

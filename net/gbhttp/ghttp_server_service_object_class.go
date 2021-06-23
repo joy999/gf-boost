@@ -21,17 +21,7 @@ import (
 	"github.com/gogf/gf/text/gstr"
 )
 
-var serviceObjectClassInfoCache *gmap.StrAnyMap // map[string]*gpool.Pool
-
 // var objectCache map[string][]*objectCacheInfo
-
-type serviceObjectClassInfo struct {
-	rVal    reflect.Value
-	methods *gmap.StrAnyMap // map[string]func(*Request)
-
-	initFunc func(*Request)
-	shutFunc func(*Request)
-}
 
 func init() {
 	serviceObjectClassInfoCache = gmap.NewStrAnyMap(true)
@@ -162,7 +152,7 @@ func (s *Server) doBindObjectClass(
 		pattern = serveHandlerKey(s.Server, "", path, domain)
 	}
 	var (
-		// m = make(map[string]*handlerItem)
+		m = make(map[string]*handlerItem)
 		v = reflect.ValueOf(object)
 		t = v.Type()
 		// initFunc func(*Request)
@@ -214,17 +204,18 @@ func (s *Server) doBindObjectClass(
 			continue
 		}
 		key := mergeBuildInNameToPattern(s.Server, pattern, structName, methodName, true)
-		s.BindHandler(key, s.callObjectClassMethods(object, methodName))
-		// m[key] = &handlerItem{
-		// 	itemName: fmt.Sprintf(`%s.%s.%s`, pkgPath, objName, methodName),
-		// 	itemType: handlerTypeHandler, //  handlerTypeObject,
-		// 	itemFunc: s.callObjectClassMethods(object, methodName),
-		// 	// itemFunc: itemFunc,
-		// 	// initFunc:   initFunc,
-		// 	// shutFunc:   shutFunc,
-		// 	middleware: middleware,
-		// 	source:     source,
-		// }
+		// s.BindHandler(key, s.callObjectClassMethods(object, methodName))
+
+		m[key] = &handlerItem{
+			itemName: fmt.Sprintf(`%s.%s.%s`, pkgPath, objName, methodName),
+			itemType: handlerTypeHandler, //  handlerTypeObject,
+			itemFunc: s.callObjectClassMethods(object, methodName),
+			// itemFunc: itemFunc,
+			// initFunc:   initFunc,
+			// shutFunc:   shutFunc,
+			middleware: middleware,
+			source:     source,
+		}
 		// If there's "Index" method, then an additional route is automatically added
 		// to match the main URI, for example:
 		// If pattern is "/user", then "/user" and "/user/index" are both automatically
@@ -238,19 +229,19 @@ func (s *Server) doBindObjectClass(
 			if len(k) == 0 || k[0] == '@' {
 				k = "/" + k
 			}
-			s.BindHandler(k, s.callObjectClassMethods(object, methodName))
-			// m[k] = &handlerItem{
-			// 	itemName: fmt.Sprintf(`%s.%s.%s`, pkgPath, objName, methodName),
-			// 	itemType: handlerTypeHandler, //   handlerTypeObject,
-			// 	itemFunc: s.callObjectClassMethods(object, methodName),
-			// 	// initFunc:   initFunc,
-			// 	// shutFunc:   shutFunc,
-			// 	middleware: middleware,
-			// 	source:     source,
-			// }
+			// s.BindHandler(k, s.callObjectClassMethods(object, methodName))
+			m[k] = &handlerItem{
+				itemName: fmt.Sprintf(`%s.%s.%s`, pkgPath, objName, methodName),
+				itemType: handlerTypeHandler, //   handlerTypeObject,
+				itemFunc: s.callObjectClassMethods(object, methodName),
+				// initFunc:   initFunc,
+				// shutFunc:   shutFunc,
+				middleware: middleware,
+				source:     source,
+			}
 		}
 	}
-	// s.bindHandlerByMap(m)
+	bindHandlerByMap(s.Server, m)
 
 }
 
