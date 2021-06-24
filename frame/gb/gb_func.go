@@ -1,6 +1,8 @@
 package gb
 
 import (
+	"reflect"
+
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/net/ghttp"
 	"github.com/joy999/gf-boost/net/gbhttp"
@@ -14,4 +16,30 @@ func Server(s ...*ghttp.Server) *gbhttp.Server {
 		o.Server = g.Server()
 	}
 	return o
+}
+
+func GetMethodsOfObject(o interface{}) (ret map[string]interface{}) {
+	val := reflect.ValueOf(o)
+	v := val.Elem()
+	t := val.Type()
+
+	ret = make(map[string]interface{}, 0)
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if field.Anonymous {
+			//说明是有继承方法
+			m := GetMethodsOfObject(v.Elem().Field(i).Interface())
+			for k, v := range m {
+				ret[k] = v
+			}
+			continue
+		}
+
+		if field.Type.Kind() == reflect.Func {
+			ret[field.Name] = v.Elem().Field(i).Interface()
+		}
+	}
+
+	return ret
 }
