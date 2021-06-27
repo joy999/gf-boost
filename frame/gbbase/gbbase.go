@@ -1,37 +1,51 @@
 package gbbase
 
-import "context"
+import (
+	"context"
+
+	"github.com/gogf/gf/container/gmap"
+	"github.com/gogf/gf/container/gpool"
+	"github.com/joy999/gf-boost/frame/gbcontext"
+	"github.com/joy999/gf-boost/frame/gbdb"
+)
 
 type (
 	ICtx interface {
 		SetCtx(context.Context)
 		Ctx() context.Context
+		//Transaction(func(context.Context, *gdb.TX) error)
 	}
 
-	IServiceDestory interface {
-		Destory()
+	IServiceCloser interface {
+		Close()
 	}
 
 	IService interface {
 		ICtx
-		IServiceDestory
+		IServiceCloser
 		SetServiceManage(*ServiceManage)
 	}
 )
 
 type (
-	ServiceCtx struct {
-		ctx context.Context
-	}
+	// ServiceCtx struct {
+	// 	ctx context.Context
+	// }
 
 	Service struct {
-		ServiceCtx
+		gbcontext.ContextManage
 		*ServiceManage
 	}
 
 	//使用ServiceManage时，应该继承自该类并重新实现
 	ServiceManage struct {
-		ServiceCtx
-		instances map[string]IService
+		gbdb.TransactionManage
+		instances *gmap.StrAnyMap // map[string]IService
+		isClosing bool
+		//Request   *ghttp.Request
 	}
+)
+
+var (
+	serviceManagePool *gpool.Pool
 )

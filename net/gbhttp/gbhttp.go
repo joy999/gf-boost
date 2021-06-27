@@ -22,6 +22,13 @@ type (
 		Stack() string
 	}
 
+	Initter interface {
+		Init(*ghttp.Request)
+	}
+	Shutter interface {
+		Shut(*ghttp.Request)
+	}
+
 	handlerItem struct {
 		itemId     int                // Unique handler item id mark.
 		itemName   string             // Handler name, which is automatically retrieved from runtime stack when registered.

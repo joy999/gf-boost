@@ -1,9 +1,10 @@
-package gb
+package gbbase
 
 import (
 	"reflect"
 	"time"
 
+	"github.com/gogf/gf/container/gmap"
 	"github.com/gogf/gf/container/gpool"
 )
 
@@ -18,29 +19,39 @@ type (
 )
 
 var (
-	serviceClasses map[string]*serviceClassInfo = make(map[string]*serviceClassInfo)
+	serviceClasses *gmap.StrAnyMap
 )
+
+func init() {
+	serviceClasses = gmap.NewStrAnyMap(true) // make(map[string]*serviceClassInfo)
+}
 
 //设置服务类
 func SetServiceClassObjectOfFactory(key string, o interface{}) {
 	ci := new(serviceClassInfo)
 	ci.object = o
-	v := reflect.ValueOf(o)
+
+	v := reflect.ValueOf(ci.object)
 	t := v.Type()
+
 	ci.pool = gpool.New(time.Minute*5, func() (interface{}, error) {
+
 		o := reflect.New(t)
 		o.Elem().Set(v)
 
-		return o.Interface(), nil
+		ret := o.Elem().Interface()
+		return ret, nil
 	})
 
-	serviceClasses[key] = ci
+	// serviceClasses[key] = ci
+	serviceClasses.Set(key, ci)
 }
 
 //生成一个新的服务对象
 func NewServiceObjectOfFactory(key string) interface{} {
-	ci, ok := serviceClasses[key]
-	if !ok {
+	ci, ok := serviceClasses.Get(key).(*serviceClassInfo)
+
+	if !ok || ci == nil {
 		return nil
 	}
 
@@ -50,8 +61,8 @@ func NewServiceObjectOfFactory(key string) interface{} {
 }
 
 func CloseServiceObjectOfFactory(key string, o interface{}) {
-	ci, ok := serviceClasses[key]
-	if !ok {
+	ci, ok := serviceClasses.Get(key).(*serviceClassInfo) // serviceClasses[key]
+	if !ok || ci == nil {
 		return
 	}
 	ci.pool.Put(o)

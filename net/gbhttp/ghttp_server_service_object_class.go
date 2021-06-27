@@ -82,12 +82,19 @@ func (s *Server) callObjectClassMethods(object interface{}, methodName string) f
 				ov.Set(v)
 				o.methods = gmap.NewStrAnyMap(true) // make(map[string]func(*Request), 0)
 
-				if ov.MethodByName("Init").IsValid() {
-					o.initFunc = ov.MethodByName("Init").Interface().(func(*Request))
+				i := ov.Interface()
+				if fn, ok := i.(Initter); ok {
+					o.initFunc = fn.Init
 				}
-				if ov.MethodByName("Shut").IsValid() {
-					o.shutFunc = ov.MethodByName("Shut").Interface().(func(*Request))
+				if fn, ok := i.(Shutter); ok {
+					o.shutFunc = fn.Shut
 				}
+				// if ov.MethodByName("Init").IsValid() {
+				// 	o.initFunc = ov.MethodByName("Init").Interface().(func(*Request))
+				// }
+				// if ov.MethodByName("Shut").IsValid() {
+				// 	o.shutFunc = ov.MethodByName("Shut").Interface().(func(*Request))
+				// }
 				return o, nil
 			})
 			return pool
