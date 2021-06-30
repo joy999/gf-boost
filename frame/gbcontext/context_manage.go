@@ -1,9 +1,15 @@
 package gbcontext
 
-import "golang.org/x/net/context"
+import (
+	"golang.org/x/net/context"
+)
 
 func (this *ContextManage) SetCtx(ctx context.Context) {
 	if c, ok := ctx.(*Context); ok {
+		ctx := c.Ctx()
+		if ctx == nil {
+			ctx = context.TODO()
+		}
 		this.Context = c
 	} else {
 		if this.Context == nil {
@@ -15,7 +21,11 @@ func (this *ContextManage) SetCtx(ctx context.Context) {
 }
 
 func (this *ContextManage) Ctx() context.Context {
+	// if this.Context != nil {
 	return this.Context.Ctx()
+	// } else {
+	// 	return nil
+	// }
 }
 
 func (this *ContextManage) SetCtxVar(key string, val interface{}) {

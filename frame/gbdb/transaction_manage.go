@@ -35,3 +35,11 @@ func (this *TransactionManage) Transaction(f func(ctx context.Context, tx *gdb.T
 		return
 	})
 }
+
+func (this *TransactionManage) SetCtx(ctx context.Context) {
+	this.ContextManage.SetCtx(ctx)
+}
+
+func (this *TransactionManage) Close() {
+	this.ContextManage.Close()
+}

@@ -8,14 +8,14 @@ import (
 )
 
 func init() {
-	serviceManagePool = gpool.New(time.Minute*5, func() (interface{}, error) {
+	serviceManagePool = gpool.New(time.Minute, func() (interface{}, error) {
 		o := new(ServiceManage)
 		// o.instances = make(map[string]IService, 0)
 		o.instances = gmap.NewStrAnyMap(true)
 		return o, nil
 	}, func(i interface{}) {
 		s := i.(*ServiceManage)
-		s.Close()
+		s.Destory()
 	})
 }
 

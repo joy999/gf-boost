@@ -10,6 +10,10 @@ import (
 )
 
 type (
+	Initter interface {
+		Init()
+	}
+
 	ICtx interface {
 		SetCtx(context.Context)
 		Ctx() context.Context

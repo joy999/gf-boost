@@ -1,6 +1,8 @@
 package gbbase
 
 import (
+	"context"
+
 	"github.com/gogf/gf/frame/g"
 )
 
@@ -11,15 +13,40 @@ func (this *ServiceManage) Close() {
 	}
 	this.isClosing = true
 	this.instances.LockFunc(func(m map[string]interface{}) {
-		for k, v := range m {
-			if fn, ok := v.(IServiceCloser); ok {
+		for _, v := range m {
+			if fn, ok := v.(IService); ok {
+				fn.SetServiceManage(nil)
 				fn.Close()
 			}
-			CloseServiceObjectOfFactory(k, v)
+			// CloseServiceObjectOfFactory(k, v)
 		}
 	})
 	this.TransactionManage.Close()
+
 	serviceManagePool.Put(this)
+	//g.Log().Debugf("Close ServiceMange %p %v", this, this)
+	//gdebug.PrintStack()
+	this.isClosing = false
+}
+
+func (this *ServiceManage) Destory() {
+	this.isClosing = true
+	this.instances.LockFunc(func(m map[string]interface{}) {
+		for k, v := range m {
+			if fn, ok := v.(IService); ok {
+				fn.SetServiceManage(nil)
+				fn.Close()
+			}
+			// if fn, ok := v.(IServiceCloser); ok {
+
+			// 	fn.Close()
+			// }
+			CloseServiceObjectOfFactory(k, v)
+		}
+	})
+	//this.instances.Clear()
+	this.TransactionManage.Close()
+	g.Log().Debugf("Destory ServiceMange %p %v", this, this)
 	this.isClosing = false
 }
 
@@ -38,6 +65,16 @@ func (this *ServiceManage) CloseService(key string) {
 	// 	}
 	// 	CloseServiceObjectOfFactory(key, v)
 	// }
+}
+
+func (this *ServiceManage) SetCtx(ctx context.Context) {
+	this.TransactionManage.SetCtx(ctx)
+	// this.instances.Iterator(func(k string, v interface{}) bool {
+	// 	if v, ok := v.(IService); ok {
+	// 		v.SetCtx(ctx)
+	// 	}
+	// 	return true
+	// })
 }
 
 func (this *ServiceManage) GetService(key string) interface{} {
@@ -67,8 +104,15 @@ func (this *ServiceManage) GetService(key string) interface{} {
 	// }
 
 	s.SetServiceManage(this)
-	s.SetCtx(this.Ctx())
 
+	if v, ok := s.(Initter); ok {
+		v.Init()
+	}
+
+	ctx := this.Ctx()
+	if ctx != nil {
+		s.SetCtx(ctx)
+	}
 	return s
 
 }
